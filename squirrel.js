@@ -59,6 +59,7 @@ class Squirrel {
     this.y = this.homePos.r * this.tileSize;
     this.dir = { x: 0, y: -1 };
     this.targetTile = { ...this.scatterTile };
+    this.lastDecisionTile = null;
 
     this.state = this.type === 'nutty' ? 'CHASE' : 'SPAWNING';
     this.spawnTimer = this.spawnDelay;
@@ -82,6 +83,7 @@ class Squirrel {
     this.isFlashing = false;
     // Reverse direction immediately upon entering frightened mode
     this.dir = { x: -this.dir.x, y: -this.dir.y };
+    this.lastDecisionTile = null;
   }
 
   getEaten() {
@@ -123,6 +125,7 @@ class Squirrel {
           if (this.y <= 11.5 * this.tileSize) {
             this.state = globalState;
             this.dir = { x: -1, y: 0 };
+            this.lastDecisionTile = null;
           }
         }
       }
@@ -157,7 +160,9 @@ class Squirrel {
     const centerTileY = currentR * ts + ts / 2;
     const distToCenter = Math.hypot(this.x - centerTileX, this.y - centerTileY);
 
-    if (distToCenter <= this.speed) {
+    const tileKey = currentC + ',' + currentR;
+    if (distToCenter <= this.speed && this.lastDecisionTile !== tileKey) {
+      this.lastDecisionTile = tileKey;
       // Snap to tile center
       this.x = centerTileX;
       this.y = centerTileY;
@@ -170,6 +175,7 @@ class Squirrel {
           // Re-entered house door
           this.state = 'SPAWNING';
           this.spawnTimer = 1.0; // short pause before exiting
+          this.lastDecisionTile = null;
           return;
         }
       }

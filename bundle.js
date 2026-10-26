@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = 'C:/Users/zyany/.gemini/antigravity/scratch/shiba-pacman';
-const artifactDir = 'C:/Users/zyany/.gemini/antigravity/brain/dd191095-b094-44ca-b0be-77a2a83d3538';
+// Resolve paths relative to repository directory
+const dir = __dirname;
+const artifactDir = process.env.ARTIFACT_DIR || null;
 
 const css = fs.readFileSync(path.join(dir, 'style.css'), 'utf8');
 const audio = fs.readFileSync(path.join(dir, 'audio.js'), 'utf8');
@@ -21,12 +22,18 @@ let bundled = indexHtml
     `<script>\n${audio}\n${maze}\n${shiba}\n${squirrel}\n${game}\n${main}\n</script>`
   );
 
-// Ensure artifactDir exists
-if (!fs.existsSync(artifactDir)) {
-  fs.mkdirSync(artifactDir, { recursive: true });
-}
-
 fs.writeFileSync(path.join(dir, 'standalone.html'), bundled, 'utf8');
-fs.writeFileSync(path.join(artifactDir, 'game.html'), bundled, 'utf8');
+console.log('Successfully written standalone.html in repository root! Size:', bundled.length, 'bytes');
 
-console.log('Successfully bundled into standalone.html and artifact game.html! Total size:', bundled.length, 'bytes');
+// Optionally write to artifactDir if it exists or is configured
+if (artifactDir) {
+  try {
+    if (!fs.existsSync(artifactDir)) {
+      fs.mkdirSync(artifactDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(artifactDir, 'game.html'), bundled, 'utf8');
+    console.log('Successfully written artifact game.html!');
+  } catch (err) {
+    console.warn('Could not write to artifactDir:', err.message);
+  }
+}

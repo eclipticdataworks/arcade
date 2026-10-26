@@ -22,7 +22,13 @@ class Game {
     ];
 
     // High Score persistence
-    this.highScore = parseInt(localStorage.getItem('shiba_pacman_highscore') || '0', 10);
+    this.highScore = 0;
+    try {
+      const saved = localStorage.getItem('shiba_pacman_highscore');
+      if (saved) this.highScore = parseInt(saved, 10) || 0;
+    } catch (e) {
+      this.highScore = 0;
+    }
     this.score = 0;
     this.lives = 3;
     this.level = 1;
@@ -58,7 +64,10 @@ class Game {
     // Frame timing
     this.lastTime = 0;
     this.animFrame = 0;
+    this.accumulator = 0;
+    this.fixedStep = 1 / 60;
     this.flashMazeTimer = 0;
+
 
     // Fruit spawn trigger thresholds
     this.fruitSpawnedCount = 0;
@@ -73,6 +82,7 @@ class Game {
   }
 
   startNewGame() {
+    this.saveHighScore();
     this.score = 0;
     this.lives = 3;
     this.level = 1;
@@ -255,6 +265,7 @@ class Game {
         this.state = 'LEVEL_CLEAR';
         this.stateTimer = 2.2;
         this.flashMazeTimer = 0;
+
         return;
       }
     }
@@ -519,10 +530,14 @@ class Game {
 
   loop(currentTime = 0) {
     if (!this.lastTime) this.lastTime = currentTime;
-    const dt = Math.min((currentTime - this.lastTime) / 1000, 0.1); // clamp delta
+    const elapsed = Math.min((currentTime - this.lastTime) / 1000, 0.1); // clamp delta
     this.lastTime = currentTime;
 
-    this.update(dt);
+    this.accumulator += elapsed;
+    while (this.accumulator >= this.fixedStep) {
+      this.update(this.fixedStep);
+      this.accumulator -= this.fixedStep;
+    }
     this.draw();
 
     requestAnimationFrame((t) => this.loop(t));
