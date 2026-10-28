@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shiba Pac-Man Arcade - Yuki vs The Squirrels</title>
+  <style>
+/* Arcade Styling & CRT Filters for Shiba Pac-Man */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --arcade-bg: #0b0f19;
+  --arcade-border: #1e293b;
+  --neon-blue: #38bdf8;
+  --neon-gold: #fbbf24;
+  --neon-pink: #f472b6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: var(--arcade-bg);
+  color: #f1f5f9;
+  font-family: 'Press Start 2P', monospace, system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow-x: hidden;
+}
+
+/* Cabinet Container */
+.arcade-cabinet {
+  background: linear-gradient(180deg, #1e2433 0%, #111522 100%);
+  border: 4px solid #334155;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8),
+              0 0 20px rgba(56, 189, 248, 0.15),
+              inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  max-width: 620px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Header & Marquee */
+.arcade-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px 14px 12px;
+  border-bottom: 2px solid #232c42;
+  margin-bottom: 12px;
+}
+
+.arcade-title {
+  font-size: 14px;
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* HUD Bar */
+.arcade-hud {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  text-align: center;
+  font-size: 11px;
+  padding: 6px 10px 10px 10px;
+  gap: 8px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-label {
+  color: #94a3b8;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.hud-val {
+  color: #ffffff;
+  font-size: 13px;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+.hud-val.gold {
+  color: #fde047;
+  text-shadow: 0 0 6px rgba(253, 224, 71, 0.6);
+}
+
+/* Screen Wrapper */
+.screen-wrapper {
+  position: relative;
+  background-color: #000000;
+  border-radius: 12px;
+  border: 3px solid #1e293b;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9),
+              0 0 15px rgba(56, 189, 248, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+}
+
+canvas#game-canvas {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  aspect-ratio: 560 / 620;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* CRT Scanline Filter */
+.crt-scanlines::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 10;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+.crt-scanlines::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(circle at center, transparent 70%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Footer / Lives & Controls */
+.arcade-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px 6px 12px;
+}
+
+.lives-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* Control Buttons Toolbar */
+.toolbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.arcade-btn {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.arcade-btn:hover {
+  background: #334155;
+  color: #ffffff;
+  border-color: #64748b;
+  transform: translateY(-1px);
+}
+
+.arcade-btn:active {
+  transform: translateY(1px);
+}
+
+.arcade-btn.primary {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.arcade-btn.primary:hover {
+  background: #0369a1;
+}
+
+/* Virtual D-Pad for Mobile & Touch */
+.dpad-container {
+  display: none;
+  margin-top: 14px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .dpad-container {
+    display: flex;
+  }
+}
+
+.dpad-row {
+  display: flex;
+  gap: 6px;
+}
+
+.dpad-btn {
+  width: 52px;
+  height: 52px;
+  background: #1e293b;
+  border: 2px solid #475569;
+  border-radius: 12px;
+  color: #f1f5f9;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  touch-action: manipulation;
+  transition: background 0.1s, transform 0.1s;
+}
+
+.dpad-btn:active {
+  background: #0284c7;
+  border-color: #38bdf8;
+  transform: scale(0.92);
+}
+
+/* Instructions card */
+.instructions-card {
+  margin-top: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 9px;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 620px;
+  width: 100%;
+}
+
+.instructions-card strong {
+  color: #e2e8f0;
+}
+
+</style>
+</head>
+<body>
+
+  <div class="arcade-cabinet">
+    <!-- Marquee / Title -->
+    <header class="arcade-header">
+      <div class="arcade-title">
+        <span>🐕</span>
+        <span>SHIBA PAC-MAN</span>
+      </div>
+      <div style="font-size: 8px; color: #94a3b8; letter-spacing: 0.5px;">
+        ARCADE 1980 EDITION
+      </div>
+    </header>
+
+    <!-- HUD Marquee -->
+    <div class="arcade-hud">
+      <div class="hud-item">
+        <span class="hud-label">1UP SCORE</span>
+        <span id="hud-score" class="hud-val">00000</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">HIGH SCORE</span>
+        <span id="hud-highscore" class="hud-val gold">00000</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">STAGE</span>
+        <span id="hud-level" class="hud-val">1</span>
+      </div>
+    </div>
+
+    <!-- Screen Wrapper with CRT Scanline Filter -->
+    <div id="screen-wrapper" class="screen-wrapper crt-scanlines">
+      <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Footer Status (Lives & Toolbar) -->
+    <div class="arcade-footer">
+      <div class="lives-container">
+        <span>LIVES:</span>
+        <div id="hud-lives" style="display: inline-flex; gap: 4px;">🐕 🐕</div>
+      </div>
+      <div style="font-size: 8px; color: #38bdf8;">
+        PRESS <span style="color: #fbbf24;">SPACE</span> TO PLAY
+      </div>
+    </div>
+
+    <!-- Arcade Toolbar Controls -->
+    <div class="toolbar-controls">
+      <button id="btn-start" class="arcade-btn primary">▶ START / RESTART</button>
+      <button id="btn-pause" class="arcade-btn">⏸ PAUSE</button>
+      <button id="btn-mute" class="arcade-btn">🔊 SOUND</button>
+      <button id="btn-theme" class="arcade-btn">⚡ THEME</button>
+      <button id="btn-crt" class="arcade-btn bg-blue-600">📺 CRT FILTER</button>
+    </div>
+
+    <!-- Mobile Virtual D-Pad -->
+    <div class="dpad-container">
+      <div class="dpad-row">
+        <button id="btn-up" class="dpad-btn">▲</button>
+      </div>
+      <div class="dpad-row">
+        <button id="btn-left" class="dpad-btn">◀</button>
+        <button id="btn-down" class="dpad-btn">▼</button>
+        <button id="btn-right" class="dpad-btn">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions & Lore Card -->
+  <div class="instructions-card">
+    <div style="font-weight: bold; margin-bottom: 6px; color: #fde047; font-size: 10px;">
+      HOW TO PLAY & CHARACTER ROLES:
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
+      <div>
+        <p>• <strong>Yuki (White Shiba):</strong> Guide Yuki with <strong>Arrow Keys</strong> or <strong>WASD</strong> (or swipe on touchscreen). Eat all the bone treats to clear the stage!</p>
+        <p>• <strong>Golden Acorns:</strong> Activates <strong>Zoomies Mode</strong>! The squirrels turn scared blue—chase and catch them for bonus combo points (200, 400, 800, 1600)!</p>
+      </div>
+      <div>
+        <p>• <strong>Nutty (Red Squirrel):</strong> Aggressive chaser, directly hunts Yuki.</p>
+        <p>• <strong>Chippy (Pink Squirrel):</strong> Ambusher, cuts Yuki off from 4 tiles ahead.</p>
+        <p>• <strong>Squeaky (Cyan Squirrel):</strong> Sneaky flanker, coordinates with Nutty.</p>
+        <p>• <strong>Rusty (Orange Squirrel):</strong> Shy wanderer, flees when Yuki gets close.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Scripts (Loaded in dependency order) -->
+<script>
+/**
+ * Web Audio API Sound Synthesizer for Shiba Pac-Man Arcade
+ * 100% procedural 8-bit arcade audio - no external audio files required!
+ */
+class SoundEngine {
+  constructor() {
+    this.ctx = null;
+    this.isMuted = false;
+    this.masterVolume = 0.4;
+    this.masterGain = null;
+    this.sirenOsc = null;
+    this.sirenGain = null;
+    this.sirenTimer = null;
+    this.isSirenPlaying = false;
+    this.chompToggle = false;
+    this.initialized = false;
+  }
+
+  init() {
+    if (this.initialized) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      this.ctx = new AudioCtx();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.value = this.isMuted ? 0 : this.masterVolume;
+      this.masterGain.connect(this.ctx.destination);
+      this.initialized = true;
+    } catch (e) {
+      console.warn('AudioContext init error:', e);
+    }
+  }
+
+  ensureContext() {
+    if (!this.initialized) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  toggleMute() {
+    this.isMuted = !this.isMuted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
+    }
+    return this.isMuted;
+  }
+
+  setVolume(vol) {
+    this.masterVolume = Math.max(0, Math.min(1, vol));
+    if (this.masterGain && this.ctx && !this.isMuted) {
+      this.masterGain.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
+    }
+  }
+
+  // Waka-waka / Chomp sound
+  playChomp() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    this.chompToggle = !this.chompToggle;
+    const baseFreq = this.chompToggle ? 420 : 310;
+    const endFreq = this.chompToggle ? 260 : 180;
+
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, t + 0.07);
+
+    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.08);
+  }
+
+  // Eating Golden Acorn / Power Pellet
+  playPowerPellet() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.exponentialRampToValueAtTime(880, t + 0.25);
+
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+
+    // Subtle lowpass filter for warmth
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1800, t);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.3);
+  }
+
+  // Catching a squirrel
+  playEatSquirrel() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, idx) => {
+      const t = this.ctx.currentTime + idx * 0.06;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.05, t + 0.08);
+
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(t);
+      osc.stop(t + 0.09);
+    });
+  }
+
+  // Eating Fruit / Bonus Toy
+  playEatFruit() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const freqs = [880, 1174.66, 1480, 1760]; // A5, D6, F#6, A6
+    freqs.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const start = t + i * 0.05;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0.3, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(start);
+      osc.stop(start + 0.13);
+    });
+  }
+
+  // Shiba Defeat / Caught sound
+  playDeath() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    // Chromatic downward stepping pitch
+    const pitches = [
+      493.88, 466.16, 440.00, 415.30, 392.00, 369.99, 
+      349.23, 329.63, 311.13, 293.66, 277.18, 261.63,
+      246.94, 220.00, 196.00, 164.81
+    ];
+
+    pitches.forEach((freq, i) => {
+      const start = t + i * 0.06;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, start);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.9, start + 0.055);
+
+      gain.gain.setValueAtTime(0.25, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.055);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(start);
+      osc.stop(start + 0.06);
+    });
+
+    // Cute gentle whimper at end
+    const whimperStart = t + pitches.length * 0.06 + 0.05;
+    const wOsc = this.ctx.createOscillator();
+    const wGain = this.ctx.createGain();
+    wOsc.type = 'sine';
+    wOsc.frequency.setValueAtTime(520, whimperStart);
+    wOsc.frequency.exponentialRampToValueAtTime(280, whimperStart + 0.25);
+    wGain.gain.setValueAtTime(0.2, whimperStart);
+    wGain.gain.exponentialRampToValueAtTime(0.001, whimperStart + 0.25);
+
+    wOsc.connect(wGain);
+    wGain.connect(this.masterGain);
+    wOsc.start(whimperStart);
+    wOsc.stop(whimperStart + 0.26);
+  }
+
+  // Classic Arcade Game Start Fanfare
+  playStartFanfare() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime + 0.05;
+    // Iconic Pac-Man start melody notes: (freq, duration)
+    const melody = [
+      { f: 493.88, d: 0.12 }, // B4
+      { f: 987.77, d: 0.12 }, // B5
+      { f: 739.99, d: 0.12 }, // F#5
+      { f: 622.25, d: 0.12 }, // D#5
+      { f: 987.77, d: 0.12 }, // B5
+      { f: 739.99, d: 0.12 }, // F#5
+      { f: 622.25, d: 0.22 }, // D#5
+      { f: 523.25, d: 0.12 }, // C5
+      { f: 1046.50, d: 0.12 },// C6
+      { f: 783.99, d: 0.12 }, // G5
+      { f: 659.25, d: 0.12 }, // E5
+      { f: 1046.50, d: 0.12 },// C6
+      { f: 783.99, d: 0.12 }, // G5
+      { f: 659.25, d: 0.22 }, // E5
+      { f: 493.88, d: 0.12 }, // B4
+      { f: 987.77, d: 0.12 }, // B5
+      { f: 739.99, d: 0.12 }, // F#5
+      { f: 622.25, d: 0.12 }, // D#5
+      { f: 987.77, d: 0.12 }, // B5
+      { f: 739.99, d: 0.12 }, // F#5
+      { f: 622.25, d: 0.22 }, // D#5
+      { f: 622.25, d: 0.07 }, // D#5
+      { f: 659.25, d: 0.07 }, // E5
+      { f: 698.46, d: 0.07 }, // F5
+      { f: 739.99, d: 0.07 }, // F#5
+      { f: 783.99, d: 0.07 }, // G5
+      { f: 830.61, d: 0.07 }, // G#5
+      { f: 880.00, d: 0.07 }, // A5
+      { f: 987.77, d: 0.35 }  // B5
+    ];
+
+    let curTime = t;
+    melody.forEach(note => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(note.f, curTime);
+
+      gain.gain.setValueAtTime(0.2, curTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, curTime + note.d * 0.95);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(curTime);
+      osc.stop(curTime + note.d);
+
+      curTime += note.d;
+    });
+  }
+
+  // Extra Life sound (cheerful bell chime)
+  playExtraLife() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((f, idx) => {
+      const start = t + idx * 0.09;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, start);
+
+      gain.gain.setValueAtTime(0.3, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(start);
+      osc.stop(start + 0.26);
+    });
+  }
+}
+
+// Global audio singleton
+window.soundEngine = new SoundEngine();
+
+/**
+ * Maze Layout & Rendering for Shiba Pac-Man
+ * 28 columns x 31 rows (Iconic arcade proportions)
+ */
+
+const RAW_MAZE_MAP = [
+  '############################',
+  '#............##............#',
+  '#.####.#####.##.#####.####.#',
+  '#o####.#####.##.#####.####o#',
+  '#.####.#####.##.#####.####.#',
+  '#..........................#',
+  '#.####.##.########.##.####.#',
+  '#.####.##.########.##.####.#',
+  '#......##....##....##......#',
+  '######.##### ## #####.######',
+  '     #.##### ## #####.#     ',
+  '     #.##          ##.#     ',
+  '     #.## ###--### ##.#     ',
+  '######.## #      # ##.######',
+  '      .   #      #   .      ',
+  '######.## #      # ##.######',
+  '     #.## ######## ##.#     ',
+  '     #.##          ##.#     ',
+  '     #.## ######## ##.#     ',
+  '######.## ######## ##.######',
+  '#............##............#',
+  '#.####.#####.##.#####.####.#',
+  '#.####.#####.##.#####.####.#',
+  '#o..##................##..o#',
+  '###.##.##.########.##.##.###',
+  '###.##.##.########.##.##.###',
+  '#......##....##....##......#',
+  '#.##########.##.##########.#',
+  '#.##########.##.##########.#',
+  '#..........................#',
+  '############################'
+];
+
+class Maze {
+  constructor(tileSize = 20) {
+    this.cols = 28;
+    this.rows = 31;
+    this.tileSize = tileSize;
+    this.width = this.cols * this.tileSize;
+    this.height = this.rows * this.tileSize;
+    this.theme = 'neon'; // 'neon' | 'park'
+    this.dots = [];
+    this.totalDots = 0;
+    this.remainingDots = 0;
+
+    // Fruit / Park Treat spawn
+    this.fruit = null; // { type: 'tennis_ball', x, y, score, timer }
+    this.fruitTimer = 0;
+
+    this.init();
+  }
+
+  init() {
+    this.dots = [];
+    this.totalDots = 0;
+    for (let r = 0; r < this.rows; r++) {
+      this.dots[r] = [];
+      for (let c = 0; c < this.cols; c++) {
+        const char = RAW_MAZE_MAP[r][c];
+        if (char === '.') {
+          this.dots[r][c] = 'dot';
+          this.totalDots++;
+        } else if (char === 'o') {
+          this.dots[r][c] = 'energizer';
+          this.totalDots++;
+        } else {
+          this.dots[r][c] = null;
+        }
+      }
+    }
+    this.remainingDots = this.totalDots;
+  }
+
+  reset() {
+    this.init();
+    this.fruit = null;
+    this.fruitTimer = 0;
+  }
+
+  isWall(c, r) {
+    if (r < 0 || r >= this.rows) return true;
+    // Tunnels wrap around horizontally
+    if (r === 14 && (c < 0 || c >= this.cols)) return false;
+    if (c < 0 || c >= this.cols) return true;
+    return RAW_MAZE_MAP[r][c] === '#';
+  }
+
+  isHouseDoor(c, r) {
+    if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return false;
+    return RAW_MAZE_MAP[r][c] === '-';
+  }
+
+  isInsideHouse(c, r) {
+    return (r >= 12 && r <= 15 && c >= 10 && c <= 17);
+  }
+
+  isTunnel(c, r) {
+    return (r === 14 && (c <= 5 || c >= 22));
+  }
+
+  eatDot(c, r) {
+    if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return null;
+    const type = this.dots[r][c];
+    if (type) {
+      this.dots[r][c] = null;
+      this.remainingDots--;
+      return type; // 'dot' (10 pts) or 'energizer' (50 pts)
+    }
+    return null;
+  }
+
+  spawnFruit(level) {
+    const fruits = [
+      { name: 'Tennis Ball', score: 100, color: '#A7F432', icon: '🎾' },
+      { name: 'Squeaky Bone', score: 300, color: '#FF70A6', icon: '🦴' },
+      { name: 'Hot Dog', score: 500, color: '#E76F51', icon: '🌭' },
+      { name: 'Gold Trophy', score: 700, color: '#FFD166', icon: '🏆' },
+      { name: 'Royal Crown', score: 1000, color: '#F4A261', icon: '👑' }
+    ];
+    const index = Math.min(level - 1, fruits.length - 1);
+    this.fruit = {
+      ...fruits[index],
+      col: 13.5,
+      row: 17,
+      timer: 10 // stays for 10 seconds
+    };
+  }
+
+  updateFruit(dt) {
+    if (this.fruit) {
+      this.fruit.timer -= dt;
+      if (this.fruit.timer <= 0) {
+        this.fruit = null;
+      }
+    }
+  }
+
+  draw(ctx, animFrame) {
+    const ts = this.tileSize;
+
+    // Draw background
+    ctx.fillStyle = this.theme === 'park' ? '#14281D' : '#070913';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Draw park cobblestone pattern or arcade grid if desired
+    if (this.theme === 'park') {
+      ctx.strokeStyle = 'rgba(46, 117, 89, 0.15)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < this.width; x += ts * 2) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, this.height);
+        ctx.stroke();
+      }
+    }
+
+    // Draw walls
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const char = RAW_MAZE_MAP[r][c];
+        const x = c * ts;
+        const y = r * ts;
+
+        if (char === '#') {
+          this.drawWallBlock(ctx, c, r, x, y, ts);
+        } else if (char === '-') {
+          // Ghost house door
+          this.drawHouseDoor(ctx, x, y, ts, animFrame);
+        }
+      }
+    }
+
+    // Draw dots & energizers
+    const timeSec = animFrame * 0.05;
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const type = this.dots[r][c];
+        if (!type) continue;
+
+        const cx = c * ts + ts / 2;
+        const cy = r * ts + ts / 2;
+
+        if (type === 'dot') {
+          this.drawKibbleDot(ctx, cx, cy);
+        } else if (type === 'energizer') {
+          this.drawGoldenAcorn(ctx, cx, cy, timeSec);
+        }
+      }
+    }
+
+    // Draw fruit bonus item if active
+    if (this.fruit) {
+      this.drawFruitItem(ctx, this.fruit.col * ts, this.fruit.row * ts + ts / 2, animFrame);
+    }
+  }
+
+  drawWallBlock(ctx, c, r, x, y, ts) {
+    if (this.theme === 'park') {
+      // Lush Japanese hedge style with rounded aesthetic
+      ctx.fillStyle = '#1D5A3A';
+      ctx.fillRect(x, y, ts, ts);
+
+      // Hedge top highlight
+      ctx.fillStyle = '#2D8A58';
+      ctx.fillRect(x + 1, y + 1, ts - 2, 3);
+
+      // Subtle foliage leaf dot
+      if ((c + r) % 3 === 0) {
+        ctx.fillStyle = '#3DB876';
+        ctx.beginPath();
+        ctx.arc(x + ts * 0.5, y + ts * 0.5, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Outer border
+      ctx.strokeStyle = '#0F3822';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, ts, ts);
+    } else {
+      // Classic Neon Arcade Style
+      ctx.fillStyle = '#0F172A';
+      ctx.fillRect(x, y, ts, ts);
+
+      ctx.strokeStyle = '#2563EB'; // Electric blue
+      ctx.shadowColor = '#60A5FA';
+      ctx.shadowBlur = 4;
+      ctx.lineWidth = 1.5;
+
+      // Draw subtle inner wall contours for that true arcade feel
+      const neighbors = {
+        top: this.isWall(c, r - 1),
+        bottom: this.isWall(c, r + 1),
+        left: this.isWall(c - 1, r),
+        right: this.isWall(c + 1, r)
+      };
+
+      ctx.beginPath();
+      if (!neighbors.top) {
+        ctx.moveTo(x, y + 1);
+        ctx.lineTo(x + ts, y + 1);
+      }
+      if (!neighbors.bottom) {
+        ctx.moveTo(x, y + ts - 1);
+        ctx.lineTo(x + ts, y + ts - 1);
+      }
+      if (!neighbors.left) {
+        ctx.moveTo(x + 1, y);
+        ctx.lineTo(x + 1, y + ts);
+      }
+      if (!neighbors.right) {
+        ctx.moveTo(x + ts - 1, y);
+        ctx.lineTo(x + ts - 1, y + ts);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0; // reset
+    }
+  }
+
+  drawHouseDoor(ctx, x, y, ts, animFrame) {
+    // Glowing squirrel gate
+    const glow = Math.sin(animFrame * 0.1) * 0.3 + 0.7;
+    ctx.fillStyle = `rgba(244, 114, 182, ${glow})`;
+    ctx.fillRect(x, y + ts * 0.35, ts, ts * 0.3);
+
+    ctx.strokeStyle = '#F472B6';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y + ts * 0.35, ts, ts * 0.3);
+  }
+
+  // Draw cute little dog kibble / bone
+  drawKibbleDot(ctx, cx, cy) {
+    ctx.save();
+    ctx.fillStyle = '#FDE047'; // Golden kibble
+    ctx.shadowColor = '#EAB308';
+    ctx.shadowBlur = 3;
+
+    // Mini dog bone shape
+    const w = 4;
+    const h = 2;
+    ctx.fillRect(cx - w, cy - h, w * 2, h * 2);
+
+    // 4 little bone lobe circles
+    const r = 2;
+    ctx.beginPath();
+    ctx.arc(cx - w, cy - h, r, 0, Math.PI * 2);
+    ctx.arc(cx - w, cy + h, r, 0, Math.PI * 2);
+    ctx.arc(cx + w, cy - h, r, 0, Math.PI * 2);
+    ctx.arc(cx + w, cy + h, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Draw Golden Acorn (Power Pellet)
+  drawGoldenAcorn(ctx, cx, cy, timeSec) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // Pulse size gently
+    const scale = 1 + 0.18 * Math.sin(timeSec * 5);
+    ctx.scale(scale, scale);
+
+    // Golden glow
+    ctx.shadowColor = '#FBBF24';
+    ctx.shadowBlur = 8;
+
+    // Acorn nut body (pointed oval bottom)
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.moveTo(-6, -1);
+    ctx.bezierCurveTo(-6, 6, 0, 9, 0, 9);
+    ctx.bezierCurveTo(0, 9, 6, 6, 6, -1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Nut highlight
+    ctx.fillStyle = '#FDE68A';
+    ctx.beginPath();
+    ctx.ellipse(-2, 3, 1.5, 3, Math.PI / 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Acorn cap (rich oak brown textured cap)
+    ctx.fillStyle = '#78350F';
+    ctx.beginPath();
+    ctx.ellipse(0, -2, 7, 3.5, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+
+    // Little acorn stem
+    ctx.strokeStyle = '#451A03';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -4);
+    ctx.quadraticCurveTo(1, -7, 2, -8);
+    ctx.stroke();
+
+    // Sparkle star glint
+    if (Math.sin(timeSec * 8) > 0.4) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(4, 2, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  drawFruitItem(ctx, cx, cy, animFrame) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // Float bobbing effect
+    const bob = Math.sin(animFrame * 0.1) * 3;
+    ctx.translate(0, bob);
+
+    ctx.font = '16px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.fruit.icon, 0, 0);
+
+    // Point badge
+    ctx.font = 'bold 9px monospace';
+    ctx.fillStyle = '#FDE047';
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 3;
+    ctx.fillText(`${this.fruit.score}`, 0, 14);
+
+    ctx.restore();
+  }
+}
+
+// Export for browser
+window.Maze = Maze;
+
+/**
+ * White Shiba Inu ("Yuki") Player Character
+ * Features authentic arcade corner-buffering, smooth grid-snapping,
+ * procedural kawaii animations, and "Zoomies Mode"!
+ */
+
+class ShibaPlayer {
+  constructor(maze) {
+    this.maze = maze;
+    this.tileSize = maze.tileSize;
+    this.radius = this.tileSize * 0.72; // Doge sprite radius
+
+    // Spawn point (Iconic Pac-Man start: Row 23, Col 13.5)
+    this.spawnX = 13.5 * this.tileSize;
+    this.spawnY = 23 * this.tileSize + this.tileSize / 2;
+
+    this.x = this.spawnX;
+    this.y = this.spawnY;
+
+    this.dir = { x: -1, y: 0 }; // Initial moving direction (facing left)
+    this.nextDir = { x: -1, y: 0 }; // Buffered input direction
+
+    this.baseSpeed = 2.15; // pixels per frame at 60fps
+    this.zoomiesSpeed = 2.50; // faster in zoomies mode
+    this.speed = this.baseSpeed;
+
+    this.isZoomies = false;
+    this.zoomiesTimer = 0;
+    this.zoomiesDuration = 8; // seconds
+
+    this.isDying = false;
+    this.deathTimer = 0;
+    this.deathDuration = 1.6; // seconds
+
+    this.animFrame = 0;
+    this.particles = []; // Sparkles / Zoomies trail
+  }
+
+  reset() {
+    this.x = this.spawnX;
+    this.y = this.spawnY;
+    this.dir = { x: -1, y: 0 };
+    this.nextDir = { x: -1, y: 0 };
+    this.isZoomies = false;
+    this.zoomiesTimer = 0;
+    this.isDying = false;
+    this.deathTimer = 0;
+    this.particles = [];
+  }
+
+  setDirection(dx, dy) {
+    // Reverse immediately if moving in opposite direction
+    if (dx === -this.dir.x && dy === -this.dir.y) {
+      this.dir = { x: dx, y: dy };
+      this.nextDir = { x: dx, y: dy };
+      return;
+    }
+    // Otherwise buffer direction to turn at next opening
+    this.nextDir = { x: dx, y: dy };
+  }
+
+  activateZoomies(duration = 8) {
+    this.isZoomies = true;
+    this.zoomiesTimer = duration;
+    this.speed = this.zoomiesSpeed;
+    // Golden burst
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16;
+      this.particles.push({
+        x: this.x,
+        y: this.y,
+        vx: Math.cos(angle) * (1.5 + Math.random() * 2),
+        vy: Math.sin(angle) * (1.5 + Math.random() * 2),
+        life: 1.0,
+        color: i % 2 === 0 ? '#FBBF24' : '#F472B6',
+        size: 2.5 + Math.random() * 2
+      });
+    }
+  }
+
+  startDeath() {
+    this.isDying = true;
+    this.deathTimer = this.deathDuration;
+  }
+
+  update(dt) {
+    // Update zoomies timer
+    if (this.isZoomies) {
+      this.zoomiesTimer -= dt;
+      if (this.zoomiesTimer <= 0) {
+        this.isZoomies = false;
+        this.speed = this.baseSpeed;
+      }
+
+      // Spawn zoomies sparkle particles
+      if (Math.random() < 0.4) {
+        this.particles.push({
+          x: this.x + (Math.random() - 0.5) * 12,
+          y: this.y + (Math.random() - 0.5) * 12,
+          vx: -this.dir.x * (0.8 + Math.random() * 1.2),
+          vy: -this.dir.y * (0.8 + Math.random() * 1.2) + (Math.random() - 0.5) * 0.5,
+          life: 0.6,
+          color: Math.random() > 0.5 ? '#FBBF24' : '#60A5FA',
+          size: 2 + Math.random() * 2
+        });
+      }
+    }
+
+    // Update death animation
+    if (this.isDying) {
+      this.deathTimer -= dt;
+      return;
+    }
+
+    // Update particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= dt * 2.0;
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
+      }
+    }
+
+    this.animFrame++;
+
+    // Grid coordinates
+    const ts = this.tileSize;
+    const currentCol = Math.floor(this.x / ts);
+    const currentRow = Math.floor(this.y / ts);
+    const centerTileX = currentCol * ts + ts / 2;
+    const centerTileY = currentRow * ts + ts / 2;
+
+    const distToCenterX = Math.abs(this.x - centerTileX);
+    const distToCenterY = Math.abs(this.y - centerTileY);
+
+    // Turn buffer window (corner tolerance)
+    const cornerTolerance = 4.0;
+
+    // Check if we can execute buffered nextDir
+    if (this.nextDir.x !== this.dir.x || this.nextDir.y !== this.dir.y) {
+      // If turning perpendicular
+      if (this.nextDir.x !== 0 && this.dir.y !== 0) {
+        // Turning horizontally while moving vertically
+        if (distToCenterY <= cornerTolerance) {
+          const targetCol = currentCol + this.nextDir.x;
+          if (!this.maze.isWall(targetCol, currentRow)) {
+            this.y = centerTileY; // snap to corridor
+            this.dir = { ...this.nextDir };
+          }
+        }
+      } else if (this.nextDir.y !== 0 && this.dir.x !== 0) {
+        // Turning vertically while moving horizontally
+        if (distToCenterX <= cornerTolerance) {
+          const targetRow = currentRow + this.nextDir.y;
+          if (!this.maze.isWall(currentCol, targetRow) && !this.maze.isHouseDoor(currentCol, targetRow)) {
+            this.x = centerTileX; // snap to corridor
+            this.dir = { ...this.nextDir };
+          }
+        }
+      }
+    }
+
+    // Movement collision check
+    let canMove = true;
+    if (this.dir.x > 0) {
+      // Moving right
+      const checkCol = Math.floor((this.x + this.radius + this.speed) / ts);
+      if (this.maze.isWall(checkCol, currentRow)) {
+        this.x = centerTileX;
+        canMove = false;
+      }
+    } else if (this.dir.x < 0) {
+      // Moving left
+      const checkCol = Math.floor((this.x - this.radius - this.speed) / ts);
+      if (this.maze.isWall(checkCol, currentRow)) {
+        this.x = centerTileX;
+        canMove = false;
+      }
+    } else if (this.dir.y > 0) {
+      // Moving down
+      const checkRow = Math.floor((this.y + this.radius + this.speed) / ts);
+      if (this.maze.isWall(currentCol, checkRow) || this.maze.isHouseDoor(currentCol, checkRow)) {
+        this.y = centerTileY;
+        canMove = false;
+      }
+    } else if (this.dir.y < 0) {
+      // Moving up
+      const checkRow = Math.floor((this.y - this.radius - this.speed) / ts);
+      if (this.maze.isWall(currentCol, checkRow) || this.maze.isHouseDoor(currentCol, checkRow)) {
+        this.y = centerTileY;
+        canMove = false;
+      }
+    }
+
+    if (canMove) {
+      this.x += this.dir.x * this.speed;
+      this.y += this.dir.y * this.speed;
+    }
+
+    // Wrap around side tunnels (Row 14)
+    if (currentRow === 14) {
+      if (this.x < -ts * 0.5) {
+        this.x = this.maze.width + ts * 0.4;
+      } else if (this.x > this.maze.width + ts * 0.5) {
+        this.x = -ts * 0.4;
+      }
+    }
+  }
+
+  draw(ctx) {
+    // Draw particles behind Shiba
+    for (const p of this.particles) {
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    // Death animation: spin and vanish
+    if (this.isDying) {
+      const progress = 1 - (this.deathTimer / this.deathDuration);
+      ctx.rotate(progress * Math.PI * 8);
+      const scale = Math.max(0.01, 1 - progress);
+      ctx.scale(scale, scale);
+      this.renderShibaBody(ctx, true);
+      ctx.restore();
+      return;
+    }
+
+    // Zoomies aura
+    if (this.isZoomies) {
+      const auraPulse = Math.sin(this.animFrame * 0.3) * 3 + 18;
+      const gradient = ctx.createRadialGradient(0, 0, 8, 0, 0, auraPulse);
+      gradient.addColorStop(0, 'rgba(251, 191, 36, 0.4)');
+      gradient.addColorStop(1, 'rgba(251, 191, 36, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, auraPulse, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    this.renderShibaBody(ctx, false);
+    ctx.restore();
+  }
+
+  renderShibaBody(ctx, isDizzy) {
+    const isMovingHoriz = this.dir.x !== 0;
+    const isMovingUp = this.dir.y < 0;
+    const isMovingDown = this.dir.y > 0;
+    const flipX = this.dir.x < 0;
+
+    if (flipX) ctx.scale(-1, 1);
+
+    const chompCycle = Math.abs(Math.sin(this.animFrame * 0.25));
+    const trotCycle = Math.sin(this.animFrame * 0.4);
+    const wag = Math.sin(this.animFrame * 0.35) * 0.25;
+
+    // Tail (White curled Shiba doughnut tail)
+    ctx.save();
+    ctx.translate(-7, 2);
+    ctx.rotate(wag - 0.4);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, 5.5, 0, Math.PI * 1.8);
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+
+    // Red Collar / Superhero Bandana
+    ctx.save();
+    if (this.isZoomies) {
+      // Fluttering superhero cape
+      ctx.fillStyle = '#EF4444';
+      ctx.beginPath();
+      ctx.moveTo(-4, -1);
+      ctx.quadraticCurveTo(-12, -4 + trotCycle * 3, -15, trotCycle * 4);
+      ctx.quadraticCurveTo(-10, 4 + trotCycle * 2, -2, 5);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Feet scampering (trot animation)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(-4 + trotCycle * 2, 8, 2.5, 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(3 - trotCycle * 2, 8, 2.5, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main Body & Head (Plump white rounded Shiba)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+    ctx.shadowBlur = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Soft Cream shading on cheeks
+    ctx.fillStyle = '#F5F2EB';
+    ctx.beginPath();
+    ctx.arc(0, 3, 7, 0, Math.PI);
+    ctx.fill();
+
+    // Ears (Pointed Shiba ears)
+    // Left ear
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(-7, -4);
+    ctx.lineTo(-6, -12);
+    ctx.lineTo(-1, -7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Left inner ear (pink)
+    ctx.fillStyle = '#FFB8C6';
+    ctx.beginPath();
+    ctx.moveTo(-6, -5);
+    ctx.lineTo(-5.5, -10.5);
+    ctx.lineTo(-2, -7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right ear
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(1, -7);
+    ctx.lineTo(6, -12);
+    ctx.lineTo(7, -4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right inner ear (pink)
+    ctx.fillStyle = '#FFB8C6';
+    ctx.beginPath();
+    ctx.moveTo(2, -7);
+    ctx.lineTo(5.5, -10.5);
+    ctx.lineTo(6, -5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Red Collar
+    ctx.fillStyle = '#EF4444';
+    ctx.beginPath();
+    ctx.roundRect(-6, 4, 12, 2.5, 1);
+    ctx.fill();
+
+    // Golden collar bell
+    ctx.fillStyle = '#FBBF24';
+    ctx.beginPath();
+    ctx.arc(0, 6, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Face Details
+    if (isMovingUp) {
+      // Facing up: back of head, two perky ears
+      return;
+    }
+
+    // Shiba Eyebrows (Cream dots)
+    ctx.fillStyle = '#E5DECF';
+    ctx.beginPath();
+    ctx.arc(-3, -3, 1.2, 0, Math.PI * 2);
+    ctx.arc(3, -3, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    if (isDizzy) {
+      // Dizzy spiral eyes `@ @`
+      ctx.strokeStyle = '#1F2937';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(-3.5, 0, 2, 0, Math.PI * 1.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(3.5, 0, 2, 0, Math.PI * 1.5);
+      ctx.stroke();
+    } else if (this.isZoomies) {
+      // Happy joyful eyes `^ ^`
+      ctx.strokeStyle = '#1F2937';
+      ctx.lineWidth = 1.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-5, 0.5);
+      ctx.lineTo(-3, -1.5);
+      ctx.lineTo(-1, 0.5);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(1, 0.5);
+      ctx.lineTo(3, -1.5);
+      ctx.lineTo(5, 0.5);
+      ctx.stroke();
+    } else {
+      // Kawaii shiny black eyes
+      ctx.fillStyle = '#111827';
+      const eyeX = isMovingHoriz ? 1.5 : 0;
+      ctx.beginPath();
+      ctx.arc(-3 + eyeX, 0, 1.8, 0, Math.PI * 2);
+      ctx.arc(3 + eyeX, 0, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White eye glint
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(-3.5 + eyeX, -0.6, 0.7, 0, Math.PI * 2);
+      ctx.arc(2.5 + eyeX, -0.6, 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Cute Black Button Nose
+    ctx.fillStyle = '#0F172A';
+    const noseX = isMovingHoriz ? 5.5 : 0;
+    const noseY = isMovingDown ? 4 : 2;
+    ctx.beginPath();
+    ctx.ellipse(noseX, noseY, 1.6, 1.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Chomping mouth animation
+    if (chompCycle > 0.15 && !isDizzy) {
+      const openAmount = chompCycle * 4;
+      ctx.fillStyle = '#FF8FA3'; // pink tongue
+      ctx.beginPath();
+      if (isMovingHoriz) {
+        ctx.arc(noseX + 1, noseY + 2.5, openAmount, 0, Math.PI);
+      } else {
+        ctx.arc(noseX, noseY + 2, openAmount, 0, Math.PI);
+      }
+      ctx.fill();
+    } else {
+      // Smiling mouth line
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(noseX - 2, noseY + 2);
+      ctx.quadraticCurveTo(noseX, noseY + 3.2, noseX + 2, noseY + 2);
+      ctx.stroke();
+    }
+  }
+}
+
+window.ShibaPlayer = ShibaPlayer;
+
+/**
+ * The 4 Squirrels (Ghosts) with Authentic Arcade AI & Procedural Visuals
+ * 1. Nutty (Red / Blinky) - Direct Chaser & Pack Leader
+ * 2. Chippy (Pink / Pinky) - Ambush Strategist (targets 4 tiles ahead)
+ * 3. Squeaky (Cyan / Inky) - Flanker (uses vector from Nutty)
+ * 4. Rusty (Orange / Clyde) - Shy Wanderer (chases when far, flees when close)
+ */
+
+class Squirrel {
+  constructor(type, maze) {
+    this.type = type; // 'nutty' | 'chippy' | 'squeaky' | 'rusty'
+    this.maze = maze;
+    this.tileSize = maze.tileSize;
+    this.radius = this.tileSize * 0.70;
+
+    this.configureSquirrel();
+    this.reset();
+  }
+
+  configureSquirrel() {
+    switch (this.type) {
+      case 'nutty': // Red / Blinky
+        this.name = 'Nutty';
+        this.color = '#E63946';
+        this.tailColor = '#C1121F';
+        this.scatterTile = { c: 25, r: 0 };
+        this.homePos = { c: 13.5, r: 11.5 }; // Spawns outside house
+        this.spawnDelay = 0;
+        break;
+      case 'chippy': // Pink / Pinky
+        this.name = 'Chippy';
+        this.color = '#FF6B8B';
+        this.tailColor = '#E05780';
+        this.scatterTile = { c: 2, r: 0 };
+        this.homePos = { c: 13.5, r: 14.5 };
+        this.spawnDelay = 2.0;
+        break;
+      case 'squeaky': // Cyan / Inky
+        this.name = 'Squeaky';
+        this.color = '#00B4D8';
+        this.tailColor = '#0077B6';
+        this.scatterTile = { c: 27, r: 31 };
+        this.homePos = { c: 11.5, r: 14.5 };
+        this.spawnDelay = 4.5;
+        break;
+      case 'rusty': // Orange / Clyde
+        this.name = 'Rusty';
+        this.color = '#F77F00';
+        this.tailColor = '#D62828';
+        this.scatterTile = { c: 0, r: 31 };
+        this.homePos = { c: 15.5, r: 14.5 };
+        this.spawnDelay = 7.0;
+        break;
+    }
+  }
+
+  reset() {
+    this.x = this.homePos.c * this.tileSize;
+    this.y = this.homePos.r * this.tileSize;
+    this.dir = { x: 0, y: -1 };
+    this.targetTile = { ...this.scatterTile };
+    this.lastDecisionTile = null;
+
+    this.state = this.type === 'nutty' ? 'CHASE' : 'SPAWNING';
+    this.spawnTimer = this.spawnDelay;
+    this.houseBounceDir = 1;
+
+    this.normalSpeed = 1.95;
+    this.frightenedSpeed = 1.25;
+    this.eatenSpeed = 3.8;
+    this.tunnelSpeed = 1.1;
+    this.speed = this.normalSpeed;
+
+    this.frightenedTimer = 0;
+    this.isFlashing = false;
+    this.animFrame = Math.floor(Math.random() * 20);
+  }
+
+  makeFrightened(duration) {
+    if (this.state === 'EATEN' || this.state === 'SPAWNING') return;
+    this.state = 'FRIGHTENED';
+    this.frightenedTimer = duration;
+    this.isFlashing = false;
+    // Reverse direction immediately upon entering frightened mode
+    this.dir = { x: -this.dir.x, y: -this.dir.y };
+    this.lastDecisionTile = null;
+  }
+
+  getEaten() {
+    this.state = 'EATEN';
+    this.frightenedTimer = 0;
+  }
+
+  update(dt, shiba, nutty, globalState) {
+    this.animFrame++;
+
+    // Update frightened timer
+    if (this.state === 'FRIGHTENED') {
+      this.frightenedTimer -= dt;
+      this.isFlashing = this.frightenedTimer < 2.5 && Math.floor(this.animFrame / 6) % 2 === 0;
+      if (this.frightenedTimer <= 0) {
+        this.state = globalState; // Revert to CHASE or SCATTER
+      }
+    } else if (this.state !== 'EATEN' && this.state !== 'SPAWNING') {
+      // Sync with global mode
+      this.state = globalState;
+    }
+
+    // Spawning behavior inside squirrel tree hollow
+    if (this.state === 'SPAWNING') {
+      this.spawnTimer -= dt;
+      // Bounce up and down
+      this.y += this.houseBounceDir * 0.7;
+      if (this.y < 13.8 * this.tileSize) this.houseBounceDir = 1;
+      if (this.y > 15.2 * this.tileSize) this.houseBounceDir = -1;
+
+      if (this.spawnTimer <= 0) {
+        // Exit house
+        const doorX = 13.5 * this.tileSize;
+        if (Math.abs(this.x - doorX) > 2) {
+          this.x += Math.sign(doorX - this.x) * 1.5;
+        } else {
+          this.x = doorX;
+          this.y -= 1.8;
+          if (this.y <= 11.5 * this.tileSize) {
+            this.state = globalState;
+            this.dir = { x: -1, y: 0 };
+            this.lastDecisionTile = null;
+          }
+        }
+      }
+      return;
+    }
+
+    // Determine target tile based on AI personality
+    this.calculateTargetTile(shiba, nutty);
+
+    // Calculate speed
+    const ts = this.tileSize;
+    const currentC = Math.floor(this.x / ts);
+    const currentR = Math.floor(this.y / ts);
+
+    if (this.state === 'EATEN') {
+      this.speed = this.eatenSpeed;
+    } else if (this.maze.isTunnel(currentC, currentR)) {
+      this.speed = this.tunnelSpeed;
+    } else if (this.state === 'FRIGHTENED') {
+      this.speed = this.frightenedSpeed;
+    } else {
+      // Cruise Elroy speed boost for Nutty when dots are low
+      if (this.type === 'nutty' && this.maze.remainingDots < 30) {
+        this.speed = this.normalSpeed * 1.12;
+      } else {
+        this.speed = this.normalSpeed;
+      }
+    }
+
+    // Check if at intersection
+    const centerTileX = currentC * ts + ts / 2;
+    const centerTileY = currentR * ts + ts / 2;
+    const distToCenter = Math.hypot(this.x - centerTileX, this.y - centerTileY);
+
+    const tileKey = currentC + ',' + currentR;
+    if (distToCenter <= this.speed && this.lastDecisionTile !== tileKey) {
+      this.lastDecisionTile = tileKey;
+      // Snap to tile center
+      this.x = centerTileX;
+      this.y = centerTileY;
+
+      // Handle eaten return to hollow
+      if (this.state === 'EATEN') {
+        const doorCol = 13;
+        const doorRow = 11;
+        if ((currentC === 13 || currentC === 14) && currentR === 11) {
+          // Re-entered house door
+          this.state = 'SPAWNING';
+          this.spawnTimer = 1.0; // short pause before exiting
+          this.lastDecisionTile = null;
+          return;
+        }
+      }
+
+      // Choose next direction at intersection
+      this.chooseDirection(currentC, currentR);
+    }
+
+    // Move in chosen direction
+    this.x += this.dir.x * this.speed;
+    this.y += this.dir.y * this.speed;
+
+    // Tunnel wrap-around (Row 14)
+    if (currentR === 14) {
+      if (this.x < -ts * 0.5) {
+        this.x = this.maze.width + ts * 0.4;
+      } else if (this.x > this.maze.width + ts * 0.5) {
+        this.x = -ts * 0.4;
+      }
+    }
+  }
+
+  calculateTargetTile(shiba, nutty) {
+    const ts = this.tileSize;
+    const shibaC = Math.floor(shiba.x / ts);
+    const shibaR = Math.floor(shiba.y / ts);
+    const currentC = Math.floor(this.x / ts);
+    const currentR = Math.floor(this.y / ts);
+
+    if (this.state === 'EATEN') {
+      // Target the door of the tree hollow
+      this.targetTile = { c: 13.5, r: 11 };
+      return;
+    }
+
+    if (this.state === 'SCATTER') {
+      this.targetTile = { ...this.scatterTile };
+      return;
+    }
+
+    if (this.state === 'FRIGHTENED') {
+      // Random directions chosen at intersection
+      return;
+    }
+
+    // CHASE MODE AI:
+    switch (this.type) {
+      case 'nutty': // Blinky: Direct pursuit
+        this.targetTile = { c: shibaC, r: shibaR };
+        break;
+
+      case 'chippy': // Pinky: 4 tiles ahead of Shiba
+        this.targetTile = {
+          c: shibaC + shiba.dir.x * 4,
+          r: shibaR + shiba.dir.y * 4
+        };
+        break;
+
+      case 'squeaky': // Inky: Vector doubling from Nutty
+        {
+          const aheadC = shibaC + shiba.dir.x * 2;
+          const aheadR = shibaR + shiba.dir.y * 2;
+          const nuttyC = Math.floor((nutty ? nutty.x : this.x) / ts);
+          const nuttyR = Math.floor((nutty ? nutty.y : this.y) / ts);
+          this.targetTile = {
+            c: aheadC + (aheadC - nuttyC),
+            r: aheadR + (aheadR - nuttyR)
+          };
+        }
+        break;
+
+      case 'rusty': // Clyde: Chases if far (> 8 tiles), scatters if near (<= 8 tiles)
+        {
+          const distSq = (currentC - shibaC) ** 2 + (currentR - shibaR) ** 2;
+          if (distSq > 64) {
+            this.targetTile = { c: shibaC, r: shibaR };
+          } else {
+            this.targetTile = { ...this.scatterTile };
+          }
+        }
+        break;
+    }
+  }
+
+  chooseDirection(currentC, currentR) {
+    const possibleDirs = [
+      { x: 0, y: -1 }, // Up
+      { x: -1, y: 0 }, // Left
+      { x: 0, y: 1 },  // Down
+      { x: 1, y: 0 }   // Right
+    ];
+
+    // Squirrels cannot reverse 180 degrees at intersections
+    const validDirs = possibleDirs.filter(d => {
+      if (d.x === -this.dir.x && d.y === -this.dir.y) return false;
+      const nextC = currentC + d.x;
+      const nextR = currentR + d.y;
+
+      // Check walls
+      if (this.maze.isWall(nextC, nextR)) return false;
+
+      // Ghost house door rules
+      if (this.maze.isHouseDoor(nextC, nextR)) {
+        return this.state === 'EATEN';
+      }
+
+      return true;
+    });
+
+    if (validDirs.length === 0) {
+      // Must reverse if stuck
+      this.dir = { x: -this.dir.x, y: -this.dir.y };
+      return;
+    }
+
+    if (this.state === 'FRIGHTENED') {
+      // Pick random valid turn
+      const pick = validDirs[Math.floor(Math.random() * validDirs.length)];
+      this.dir = pick;
+      return;
+    }
+
+    // Pick direction that minimizes Euclidean distance to target
+    let bestDir = validDirs[0];
+    let bestDist = Infinity;
+
+    for (const d of validDirs) {
+      const nextC = currentC + d.x;
+      const nextR = currentR + d.y;
+      const dist = (nextC - this.targetTile.c) ** 2 + (nextR - this.targetTile.r) ** 2;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestDir = d;
+      }
+    }
+
+    this.dir = bestDir;
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    if (this.state === 'EATEN') {
+      // Draw eyes & scampering tail returning home
+      this.renderEatenSquirrel(ctx);
+      ctx.restore();
+      return;
+    }
+
+    if (this.state === 'FRIGHTENED') {
+      this.renderFrightenedSquirrel(ctx);
+      ctx.restore();
+      return;
+    }
+
+    this.renderNormalSquirrel(ctx);
+    ctx.restore();
+  }
+
+  renderNormalSquirrel(ctx) {
+    const flipX = this.dir.x < 0;
+    if (flipX) ctx.scale(-1, 1);
+
+    const tailSway = Math.sin(this.animFrame * 0.22) * 0.2;
+    const feetRun = Math.sin(this.animFrame * 0.45) * 2;
+
+    // Bushy curved squirrel tail (grand arch over the back)
+    ctx.save();
+    ctx.translate(-5, 0);
+    ctx.rotate(tailSway - 0.2);
+    ctx.fillStyle = this.tailColor;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 5);
+    ctx.bezierCurveTo(-14, 2, -18, -12, -6, -15);
+    ctx.bezierCurveTo(-1, -17, 3, -10, -1, -5);
+    ctx.bezierCurveTo(-4, 0, -2, 4, 0, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Tail fur fluff tufts
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.restore();
+
+    // Feet scampering
+    ctx.fillStyle = this.tailColor;
+    ctx.beginPath();
+    ctx.ellipse(-3 + feetRun, 8, 2, 1.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(3 - feetRun, 8, 2, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main Body
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.ellipse(0, 1, 7.5, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cream belly / chest
+    ctx.fillStyle = '#FFF1D0';
+    ctx.beginPath();
+    ctx.ellipse(1, 2, 4.5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ears with tufts
+    // Left ear
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.moveTo(-5, -6);
+    ctx.lineTo(-4, -13);
+    ctx.lineTo(-1, -7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ear tip tuft
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-4, -13);
+    ctx.lineTo(-3.5, -15);
+    ctx.stroke();
+
+    // Right ear
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.moveTo(1, -7);
+    ctx.lineTo(4, -13);
+    ctx.lineTo(5, -6);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(4, -13);
+    ctx.lineTo(4.5, -15);
+    ctx.stroke();
+
+    // Hazelnut / Acorn held in paws
+    ctx.fillStyle = '#8B4513'; // brown nut
+    ctx.beginPath();
+    ctx.ellipse(2, 4, 3, 3.5, Math.PI / 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#5C2C16'; // acorn cap
+    ctx.beginPath();
+    ctx.ellipse(1.5, 1.5, 3.2, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Little front paws hugging acorn
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(0, 4, 1.5, 0, Math.PI * 2);
+    ctx.arc(4, 4, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes looking in moving direction
+    const eyeOffsetX = this.dir.x * 1.5;
+    const eyeOffsetY = this.dir.y * 1.5;
+
+    ctx.fillStyle = '#111827';
+    ctx.beginPath();
+    ctx.arc(-2 + eyeOffsetX, -2 + eyeOffsetY, 1.8, 0, Math.PI * 2);
+    ctx.arc(3 + eyeOffsetX, -2 + eyeOffsetY, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Catchlight in eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-2.5 + eyeOffsetX, -2.5 + eyeOffsetY, 0.7, 0, Math.PI * 2);
+    ctx.arc(2.5 + eyeOffsetX, -2.5 + eyeOffsetY, 0.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cute nose button
+    ctx.fillStyle = '#331100';
+    ctx.beginPath();
+    ctx.ellipse(0.5, 0, 1.2, 0.9, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  renderFrightenedSquirrel(ctx) {
+    const isWhite = this.isFlashing;
+    const bodyColor = isWhite ? '#FFFFFF' : '#1D4ED8';
+    const bellyColor = isWhite ? '#E2E8F0' : '#60A5FA';
+    const shake = Math.sin(this.animFrame * 0.8) * 1.8;
+
+    ctx.translate(shake, 0);
+
+    // Fluffed trembling tail
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.arc(-8, -4, 6, 0, Math.PI * 2);
+    ctx.arc(-5, -8, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main body
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.ellipse(0, 1, 7.5, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = bellyColor;
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 4.5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ears
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.moveTo(-5, -6);
+    ctx.lineTo(-4, -12);
+    ctx.lineTo(-1, -7);
+    ctx.lineTo(1, -7);
+    ctx.lineTo(4, -12);
+    ctx.lineTo(5, -6);
+    ctx.fill();
+
+    // Wide panicked white eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-2.5, -2, 2.5, 0, Math.PI * 2);
+    ctx.arc(2.5, -2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Shaking pinprick pupils
+    ctx.fillStyle = '#0F172A';
+    const pupilShake = Math.sin(this.animFrame) * 0.8;
+    ctx.beginPath();
+    ctx.arc(-2.5 + pupilShake, -2, 1.1, 0, Math.PI * 2);
+    ctx.arc(2.5 + pupilShake, -2, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wavy panic mouth `~`
+    ctx.strokeStyle = '#0F172A';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-3, 3);
+    ctx.quadraticCurveTo(-1.5, 1.5, 0, 3);
+    ctx.quadraticCurveTo(1.5, 4.5, 3, 3);
+    ctx.stroke();
+
+    // Blue panic sweat drop
+    if (!isWhite) {
+      ctx.fillStyle = '#38BDF8';
+      ctx.beginPath();
+      ctx.moveTo(5, -5);
+      ctx.quadraticCurveTo(7, -3, 6, -1);
+      ctx.quadraticCurveTo(5, 0, 4, -1);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  renderEatenSquirrel(ctx) {
+    // Eaten squirrel: floating acorn & frantic scampering feet returning home
+    const feetRun = Math.sin(this.animFrame * 0.8) * 3;
+
+    // Golden acorn
+    ctx.fillStyle = '#D97706';
+    ctx.beginPath();
+    ctx.ellipse(0, -1, 4.5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#78350F';
+    ctx.beginPath();
+    ctx.ellipse(0, -4.5, 5, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tiny running feet
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.ellipse(-3 + feetRun, 6, 2, 1.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(3 - feetRun, 6, 2, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Big alert eyes peering from behind the acorn
+    const lookX = this.dir.x * 2;
+    const lookY = this.dir.y * 2;
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-3, -2, 2.8, 0, Math.PI * 2);
+    ctx.arc(3, -2, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#2563EB';
+    ctx.beginPath();
+    ctx.arc(-3 + lookX, -2 + lookY, 1.4, 0, Math.PI * 2);
+    ctx.arc(3 + lookX, -2 + lookY, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+window.Squirrel = Squirrel;
+
+/**
+ * Shiba Pac-Man Arcade Engine
+ * Manages game loop, state machine, collisions, scoring, and UI
+ */
+
+class Game {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+
+    // Tile size: 20px -> 560px width x 620px height
+    this.tileSize = 20;
+    this.maze = new Maze(this.tileSize);
+    this.player = new ShibaPlayer(this.maze);
+
+    // 4 Squirrels
+    this.squirrels = [
+      new Squirrel('nutty', this.maze),
+      new Squirrel('chippy', this.maze),
+      new Squirrel('squeaky', this.maze),
+      new Squirrel('rusty', this.maze)
+    ];
+
+    // High Score persistence
+    this.highScore = 0;
+    try {
+      const saved = localStorage.getItem('shiba_pacman_highscore');
+      if (saved) this.highScore = parseInt(saved, 10) || 0;
+    } catch (e) {
+      this.highScore = 0;
+    }
+    this.score = 0;
+    this.lives = 3;
+    this.level = 1;
+    this.extraLifeAwarded = false;
+
+    // Ghost combo multiplier
+    this.squirrelsEatenCount = 0;
+
+    // Global Mode Cycles: Scatter / Chase
+    // Classic Pac-Man mode times (in seconds)
+    this.modeSchedule = [
+      { mode: 'SCATTER', time: 7 },
+      { mode: 'CHASE', time: 20 },
+      { mode: 'SCATTER', time: 7 },
+      { mode: 'CHASE', time: 20 },
+      { mode: 'SCATTER', time: 5 },
+      { mode: 'CHASE', time: 20 },
+      { mode: 'SCATTER', time: 5 },
+      { mode: 'CHASE', time: Infinity }
+    ];
+    this.modeIndex = 0;
+    this.modeTimer = 0;
+    this.globalState = 'SCATTER';
+
+    // Game States: 'TITLE', 'READY', 'PLAYING', 'PAUSED', 'DYING', 'LEVEL_CLEAR', 'GAME_OVER'
+    this.state = 'TITLE';
+    this.stateTimer = 0;
+
+    // Visual Popups & Crumbs
+    this.popups = [];
+    this.particles = [];
+
+    // Frame timing
+    this.lastTime = 0;
+    this.animFrame = 0;
+    this.accumulator = 0;
+    this.fixedStep = 1 / 60;
+    this.flashMazeTimer = 0;
+
+
+    // Fruit spawn trigger thresholds
+    this.fruitSpawnedCount = 0;
+
+    this.init();
+  }
+
+  init() {
+    this.canvas.width = this.maze.width;
+    this.canvas.height = this.maze.height;
+    this.updateHUD();
+  }
+
+  startNewGame() {
+    this.saveHighScore();
+    this.score = 0;
+    this.lives = 3;
+    this.level = 1;
+    this.extraLifeAwarded = false;
+    this.maze.reset();
+    this.fruitSpawnedCount = 0;
+    this.updateHUD();
+    this.startLevel();
+  }
+
+  startLevel() {
+    this.player.reset();
+    this.resetSquirrels();
+    this.modeIndex = 0;
+    this.modeTimer = 0;
+    this.globalState = 'SCATTER';
+    this.squirrelsEatenCount = 0;
+
+    this.state = 'READY';
+    this.stateTimer = 2.4; // 2.4s "READY!" countdown
+    if (window.soundEngine) {
+      window.soundEngine.playStartFanfare();
+    }
+  }
+
+  resetPositionsAfterDeath() {
+    this.player.reset();
+    this.resetSquirrels();
+    this.squirrelsEatenCount = 0;
+    this.modeIndex = 0;
+    this.modeTimer = 0;
+    this.globalState = 'SCATTER';
+
+    this.state = 'READY';
+    this.stateTimer = 1.8;
+  }
+
+  resetSquirrels() {
+    for (const sq of this.squirrels) {
+      sq.reset();
+    }
+  }
+
+  togglePause() {
+    if (this.state === 'PLAYING') {
+      this.state = 'PAUSED';
+    } else if (this.state === 'PAUSED') {
+      this.state = 'PLAYING';
+    }
+  }
+
+  toggleTheme() {
+    this.maze.theme = this.maze.theme === 'neon' ? 'park' : 'neon';
+  }
+
+  update(dt) {
+    this.animFrame++;
+
+    // Update floating popups (+200, +400, etc.)
+    for (let i = this.popups.length - 1; i >= 0; i--) {
+      const pop = this.popups[i];
+      pop.y -= 25 * dt;
+      pop.life -= dt;
+      if (pop.life <= 0) this.popups.splice(i, 1);
+    }
+
+    // Update particle crumbs
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= dt * 2.5;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+
+    switch (this.state) {
+      case 'TITLE':
+        // Idle animation on title screen
+        break;
+
+      case 'READY':
+        this.stateTimer -= dt;
+        if (this.stateTimer <= 0) {
+          this.state = 'PLAYING';
+        }
+        break;
+
+      case 'PLAYING':
+        this.updatePlaying(dt);
+        break;
+
+      case 'DYING':
+        this.player.update(dt);
+        this.stateTimer -= dt;
+        if (this.stateTimer <= 0) {
+          this.lives--;
+          this.updateHUD();
+          if (this.lives <= 0) {
+            this.state = 'GAME_OVER';
+            this.saveHighScore();
+          } else {
+            this.resetPositionsAfterDeath();
+          }
+        }
+        break;
+
+      case 'LEVEL_CLEAR':
+        this.flashMazeTimer += dt;
+        this.stateTimer -= dt;
+        if (this.stateTimer <= 0) {
+          this.level++;
+          this.maze.reset();
+          this.fruitSpawnedCount = 0;
+          this.updateHUD();
+          this.startLevel();
+        }
+        break;
+
+      case 'GAME_OVER':
+      case 'PAUSED':
+        // Idle
+        break;
+    }
+  }
+
+  updatePlaying(dt) {
+    // 1. Update Global Chase / Scatter Mode Cycle
+    const currentSchedule = this.modeSchedule[this.modeIndex];
+    if (currentSchedule && currentSchedule.time !== Infinity) {
+      this.modeTimer += dt;
+      if (this.modeTimer >= currentSchedule.time) {
+        this.modeTimer = 0;
+        this.modeIndex = Math.min(this.modeIndex + 1, this.modeSchedule.length - 1);
+        this.globalState = this.modeSchedule[this.modeIndex].mode;
+        // Squirrels reverse direction on scatter/chase transition
+        for (const sq of this.squirrels) {
+          if (sq.state !== 'FRIGHTENED' && sq.state !== 'EATEN' && sq.state !== 'SPAWNING') {
+            sq.dir = { x: -sq.dir.x, y: -sq.dir.y };
+          }
+        }
+      }
+    }
+
+    // 2. Update Shiba Player
+    this.player.update(dt);
+
+    // 3. Dot / Treat Eating Check
+    const ts = this.tileSize;
+    const playerC = Math.floor(this.player.x / ts);
+    const playerR = Math.floor(this.player.y / ts);
+
+    const eatenType = this.maze.eatDot(playerC, playerR);
+    if (eatenType) {
+      if (eatenType === 'dot') {
+        this.addScore(10);
+        if (window.soundEngine) window.soundEngine.playChomp();
+        this.spawnCrumbs(this.player.x, this.player.y, '#FDE047', 4);
+      } else if (eatenType === 'energizer') {
+        this.addScore(50);
+        if (window.soundEngine) window.soundEngine.playPowerPellet();
+        this.player.activateZoomies(8);
+        this.squirrelsEatenCount = 0;
+
+        // Frighten all non-eaten squirrels
+        for (const sq of this.squirrels) {
+          sq.makeFrightened(8);
+        }
+        this.spawnCrumbs(this.player.x, this.player.y, '#F59E0B', 12);
+        this.addPopup('ZOOMIES!', this.player.x, this.player.y - 15, '#FBBF24');
+      }
+
+      // Check Fruit Spawn (Spawns at 70 and 170 remaining dots)
+      const eatenCount = this.maze.totalDots - this.maze.remainingDots;
+      if ((eatenCount === 70 || eatenCount === 170) && !this.maze.fruit) {
+        this.maze.spawnFruit(this.level);
+      }
+
+      // Check Level Clear
+      if (this.maze.remainingDots <= 0) {
+        this.state = 'LEVEL_CLEAR';
+        this.stateTimer = 2.2;
+        this.flashMazeTimer = 0;
+
+        return;
+      }
+    }
+
+    // 4. Fruit Pickup Check
+    if (this.maze.fruit) {
+      const fruitX = this.maze.fruit.col * ts;
+      const fruitY = this.maze.fruit.row * ts + ts / 2;
+      const distToFruit = Math.hypot(this.player.x - fruitX, this.player.y - fruitY);
+      if (distToFruit < this.player.radius + 8) {
+        const pts = this.maze.fruit.score;
+        this.addScore(pts);
+        if (window.soundEngine) window.soundEngine.playEatFruit();
+        this.addPopup(`+${pts}`, fruitX, fruitY - 10, '#34D399');
+        this.maze.fruit = null;
+      } else {
+        this.maze.updateFruit(dt);
+      }
+    }
+
+    // 5. Update Squirrels
+    const nutty = this.squirrels.find(s => s.type === 'nutty');
+    for (const sq of this.squirrels) {
+      sq.update(dt, this.player, nutty, this.globalState);
+
+      // Collision Check with Shiba
+      const dist = Math.hypot(this.player.x - sq.x, this.player.y - sq.y);
+      if (dist < this.player.radius + sq.radius - 4) {
+        if (sq.state === 'FRIGHTENED') {
+          // Shiba catches squirrel!
+          sq.getEaten();
+          this.squirrelsEatenCount++;
+          const pts = Math.min(1600, 200 * Math.pow(2, this.squirrelsEatenCount - 1));
+          this.addScore(pts);
+          if (window.soundEngine) window.soundEngine.playEatSquirrel();
+          this.addPopup(`+${pts}`, sq.x, sq.y - 12, '#38BDF8');
+          this.spawnCrumbs(sq.x, sq.y, sq.color, 16);
+        } else if (sq.state === 'CHASE' || sq.state === 'SCATTER') {
+          // Squirrel caught Shiba!
+          this.player.startDeath();
+          this.state = 'DYING';
+          this.stateTimer = 1.6;
+          if (window.soundEngine) window.soundEngine.playDeath();
+          return;
+        }
+      }
+    }
+  }
+
+  addScore(pts) {
+    this.score += pts;
+    if (this.score > this.highScore) {
+      this.highScore = this.score;
+    }
+    // Extra life at 10,000 points
+    if (!this.extraLifeAwarded && this.score >= 10000) {
+      this.lives++;
+      this.extraLifeAwarded = true;
+      if (window.soundEngine) window.soundEngine.playExtraLife();
+      this.addPopup('1UP EXTRA LIFE!', this.maze.width / 2, this.maze.height / 2, '#4ADE80');
+    }
+    this.updateHUD();
+  }
+
+  saveHighScore() {
+    try {
+      localStorage.setItem('shiba_pacman_highscore', this.highScore.toString());
+    } catch (e) {
+      // storage unavailable
+    }
+  }
+
+  addPopup(text, x, y, color = '#FFFFFF') {
+    this.popups.push({ text, x, y, color, life: 1.1 });
+  }
+
+  spawnCrumbs(x, y, color, count = 8) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.8 + Math.random() * 2.2;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.8,
+        color,
+        size: 1.5 + Math.random() * 2
+      });
+    }
+  }
+
+  updateHUD() {
+    const scoreEl = document.getElementById('hud-score');
+    const highEl = document.getElementById('hud-highscore');
+    const levelEl = document.getElementById('hud-level');
+    const livesEl = document.getElementById('hud-lives');
+
+    if (scoreEl) scoreEl.textContent = this.score.toString().padStart(5, '0');
+    if (highEl) highEl.textContent = this.highScore.toString().padStart(5, '0');
+    if (levelEl) levelEl.textContent = this.level.toString();
+
+    // Render lives as mini Shiba faces
+    if (livesEl) {
+      livesEl.innerHTML = '';
+      for (let i = 0; i < Math.max(0, this.lives - 1); i++) {
+        const img = document.createElement('span');
+        img.className = 'inline-block text-lg transform hover:scale-110 transition-transform';
+        img.title = 'Shiba Life';
+        img.textContent = '🐕';
+        livesEl.appendChild(img);
+      }
+    }
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Flash maze on level clear
+    if (this.state === 'LEVEL_CLEAR' && Math.floor(this.flashMazeTimer * 8) % 2 === 0) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    } else {
+      // Draw maze and dots
+      this.maze.draw(ctx, this.animFrame);
+    }
+
+    // Draw Particles
+    for (const p of this.particles) {
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Draw Squirrels (Draw first so Shiba appears on top when chasing)
+    for (const sq of this.squirrels) {
+      sq.draw(ctx);
+    }
+
+    // Draw Shiba Player
+    this.player.draw(ctx);
+
+    // Draw Floating Text Popups
+    for (const pop of this.popups) {
+      ctx.save();
+      ctx.font = 'bold 13px monospace';
+      ctx.fillStyle = pop.color;
+      ctx.shadowColor = '#000000';
+      ctx.shadowBlur = 4;
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = Math.max(0, Math.min(1, pop.life * 1.5));
+      ctx.fillText(pop.text, pop.x, pop.y);
+      ctx.restore();
+    }
+
+    // Draw Overlay Messages for game states
+    this.drawStateOverlays(ctx);
+  }
+
+  drawStateOverlays(ctx) {
+    const cx = this.canvas.width / 2;
+    const cy = 17 * this.tileSize;
+
+    if (this.state === 'READY') {
+      ctx.save();
+      ctx.font = 'bold 18px "Press Start 2P", monospace, sans-serif';
+      ctx.fillStyle = '#FBBF24'; // Yellow
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 6;
+      ctx.textAlign = 'center';
+      ctx.fillText('READY!', cx, cy + 6);
+      ctx.restore();
+    } else if (this.state === 'PAUSED') {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+      ctx.font = 'bold 20px "Press Start 2P", monospace, sans-serif';
+      ctx.fillStyle = '#60A5FA';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 8;
+      ctx.textAlign = 'center';
+      ctx.fillText('PAUSED', cx, cy - 20);
+
+      ctx.font = '12px monospace';
+      ctx.fillStyle = '#E2E8F0';
+      ctx.fillText('Press SPACE or P to Resume', cx, cy + 15);
+      ctx.restore();
+    } else if (this.state === 'GAME_OVER') {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+      ctx.font = 'bold 22px "Press Start 2P", monospace, sans-serif';
+      ctx.fillStyle = '#EF4444';
+      ctx.shadowColor = '#B91C1C';
+      ctx.shadowBlur = 10;
+      ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER', cx, cy - 30);
+
+      ctx.font = '14px monospace';
+      ctx.fillStyle = '#FDE047';
+      ctx.fillText(`Final Score: ${this.score}`, cx, cy + 5);
+
+      ctx.font = '12px monospace';
+      ctx.fillStyle = '#E2E8F0';
+      ctx.fillText('Press SPACE or Click START to Play Again', cx, cy + 40);
+      ctx.restore();
+    } else if (this.state === 'TITLE') {
+      ctx.save();
+      ctx.fillStyle = 'rgba(10, 15, 30, 0.85)';
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+      // Title Banner
+      ctx.font = 'bold 22px "Press Start 2P", monospace, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = '#38BDF8';
+      ctx.shadowBlur = 10;
+      ctx.textAlign = 'center';
+      ctx.fillText('SHIBA PAC-MAN', cx, 8 * this.tileSize);
+
+      ctx.font = '11px "Press Start 2P", monospace';
+      ctx.fillStyle = '#FBBF24';
+      ctx.fillText('YUKI VS THE SQUIRRELS', cx, 10 * this.tileSize);
+
+      // Legend of Squirrels
+      const legend = [
+        { name: 'NUTTY', role: 'CHASER', color: '#E63946', icon: '🐿️' },
+        { name: 'CHIPPY', role: 'AMBUSHER', color: '#FF6B8B', icon: '🐿️' },
+        { name: 'SQUEAKY', role: 'FLANKER', color: '#00B4D8', icon: '🐿️' },
+        { name: 'RUSTY', role: 'SHY WANDERER', color: '#F77F00', icon: '🐿️' }
+      ];
+
+      legend.forEach((item, idx) => {
+        const ly = (13 + idx * 2.2) * this.tileSize;
+        ctx.font = 'bold 12px monospace';
+        ctx.fillStyle = item.color;
+        ctx.textAlign = 'left';
+        ctx.fillText(`${item.icon} ${item.name}`, cx - 110, ly);
+
+        ctx.fillStyle = '#94A3B8';
+        ctx.textAlign = 'right';
+        ctx.fillText(`- ${item.role}`, cx + 110, ly);
+      });
+
+      // Flashing start prompt
+      if (Math.floor(this.animFrame / 30) % 2 === 0) {
+        ctx.font = 'bold 14px "Press Start 2P", monospace';
+        ctx.fillStyle = '#34D399';
+        ctx.shadowColor = '#059669';
+        ctx.shadowBlur = 8;
+        ctx.textAlign = 'center';
+        ctx.fillText('PRESS SPACE TO START', cx, 24 * this.tileSize);
+      }
+      ctx.restore();
+    }
+  }
+
+  loop(currentTime = 0) {
+    if (!this.lastTime) this.lastTime = currentTime;
+    const elapsed = Math.min((currentTime - this.lastTime) / 1000, 0.1); // clamp delta
+    this.lastTime = currentTime;
+
+    this.accumulator += elapsed;
+    while (this.accumulator >= this.fixedStep) {
+      this.update(this.fixedStep);
+      this.accumulator -= this.fixedStep;
+    }
+    this.draw();
+
+    requestAnimationFrame((t) => this.loop(t));
+  }
+}
+
+window.Game = Game;
+
+/**
+ * Main Entry Point for Shiba Pac-Man Arcade
+ * Handles user inputs, touch/mobile gestures, audio events, and UI controls
+ */
+
+window.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.getElementById('game-canvas');
+  if (!canvas) return;
+
+  const game = new Game(canvas);
+
+  // Audio unlock helper
+  const unlockAudio = () => {
+    if (window.soundEngine) {
+      window.soundEngine.ensureContext();
+    }
+  };
+
+  // Keyboard controls
+  window.addEventListener('keydown', (e) => {
+    unlockAudio();
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (game.state === 'TITLE' || game.state === 'GAME_OVER') {
+        game.startNewGame();
+      } else {
+        game.togglePause();
+      }
+      return;
+    }
+
+    if (e.code === 'KeyP') {
+      e.preventDefault();
+      game.togglePause();
+      return;
+    }
+
+    if (e.code === 'KeyM') {
+      e.preventDefault();
+      const isMuted = window.soundEngine.toggleMute();
+      updateMuteButtonUI(isMuted);
+      return;
+    }
+
+    // Direction input
+    switch (e.code) {
+      case 'ArrowUp':
+      case 'KeyW':
+        e.preventDefault();
+        game.player.setDirection(0, -1);
+        break;
+      case 'ArrowDown':
+      case 'KeyS':
+        e.preventDefault();
+        game.player.setDirection(0, 1);
+        break;
+      case 'ArrowLeft':
+      case 'KeyA':
+        e.preventDefault();
+        game.player.setDirection(-1, 0);
+        break;
+      case 'ArrowRight':
+      case 'KeyD':
+        e.preventDefault();
+        game.player.setDirection(1, 0);
+        break;
+    }
+  });
+
+  // Touch & Swipe Controls on Canvas
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  canvas.addEventListener('touchstart', (e) => {
+    unlockAudio();
+    if (e.touches.length > 0) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Prevent screen scrolling during game play
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (e.changedTouches.length === 0) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+    const minSwipeDist = 20;
+
+    if (Math.hypot(dx, dy) >= minSwipeDist) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe
+        game.player.setDirection(dx > 0 ? 1 : -1, 0);
+      } else {
+        // Vertical swipe
+        game.player.setDirection(0, dy > 0 ? 1 : -1);
+      }
+    } else {
+      // Tap on canvas starts or unpauses
+      if (game.state === 'TITLE' || game.state === 'GAME_OVER') {
+        game.startNewGame();
+      } else if (game.state === 'PAUSED') {
+        game.togglePause();
+      }
+    }
+  });
+
+  // Virtual D-Pad buttons for mobile / mouse click
+  const setupDpadButton = (id, dx, dy) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    const handlePress = (e) => {
+      e.preventDefault();
+      unlockAudio();
+      game.player.setDirection(dx, dy);
+    };
+    btn.addEventListener('mousedown', handlePress);
+    btn.addEventListener('touchstart', handlePress, { passive: false });
+  };
+
+  setupDpadButton('btn-up', 0, -1);
+  setupDpadButton('btn-down', 0, 1);
+  setupDpadButton('btn-left', -1, 0);
+  setupDpadButton('btn-right', 1, 0);
+
+  // UI Buttons
+  const startBtn = document.getElementById('btn-start');
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      unlockAudio();
+      game.startNewGame();
+    });
+  }
+
+  const pauseBtn = document.getElementById('btn-pause');
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', () => {
+      unlockAudio();
+      game.togglePause();
+    });
+  }
+
+  const muteBtn = document.getElementById('btn-mute');
+  const updateMuteButtonUI = (isMuted) => {
+    if (!muteBtn) return;
+    muteBtn.textContent = isMuted ? '🔇 Unmute' : '🔊 Mute';
+    muteBtn.classList.toggle('text-red-400', isMuted);
+  };
+
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      unlockAudio();
+      const isMuted = window.soundEngine.toggleMute();
+      updateMuteButtonUI(isMuted);
+    });
+  }
+
+  const themeBtn = document.getElementById('btn-theme');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      game.toggleTheme();
+      themeBtn.textContent = game.maze.theme === 'neon' ? '🌲 Sakura Park' : '⚡ Neon Arcade';
+    });
+  }
+
+  const crtBtn = document.getElementById('btn-crt');
+  const screenWrapper = document.getElementById('screen-wrapper');
+  if (crtBtn && screenWrapper) {
+    crtBtn.addEventListener('click', () => {
+      screenWrapper.classList.toggle('crt-scanlines');
+      crtBtn.classList.toggle('bg-blue-600', screenWrapper.classList.contains('crt-scanlines'));
+    });
+  }
+
+  // Start the game loop
+  game.loop();
+});
+
+</script>
+
+</body>
+</html>

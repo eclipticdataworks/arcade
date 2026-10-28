@@ -1,0 +1,274 @@
+/* Arcade Styling & CRT Filters for Shiba Pac-Man */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --arcade-bg: #0b0f19;
+  --arcade-border: #1e293b;
+  --neon-blue: #38bdf8;
+  --neon-gold: #fbbf24;
+  --neon-pink: #f472b6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: var(--arcade-bg);
+  color: #f1f5f9;
+  font-family: 'Press Start 2P', monospace, system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow-x: hidden;
+}
+
+/* Cabinet Container */
+.arcade-cabinet {
+  background: linear-gradient(180deg, #1e2433 0%, #111522 100%);
+  border: 4px solid #334155;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8),
+              0 0 20px rgba(56, 189, 248, 0.15),
+              inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  max-width: 620px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Header & Marquee */
+.arcade-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px 14px 12px;
+  border-bottom: 2px solid #232c42;
+  margin-bottom: 12px;
+}
+
+.arcade-title {
+  font-size: 14px;
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* HUD Bar */
+.arcade-hud {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  text-align: center;
+  font-size: 11px;
+  padding: 6px 10px 10px 10px;
+  gap: 8px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-label {
+  color: #94a3b8;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.hud-val {
+  color: #ffffff;
+  font-size: 13px;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+.hud-val.gold {
+  color: #fde047;
+  text-shadow: 0 0 6px rgba(253, 224, 71, 0.6);
+}
+
+/* Screen Wrapper */
+.screen-wrapper {
+  position: relative;
+  background-color: #000000;
+  border-radius: 12px;
+  border: 3px solid #1e293b;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9),
+              0 0 15px rgba(56, 189, 248, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+}
+
+canvas#game-canvas {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  aspect-ratio: 560 / 620;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* CRT Scanline Filter */
+.crt-scanlines::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 10;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+.crt-scanlines::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(circle at center, transparent 70%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Footer / Lives & Controls */
+.arcade-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px 6px 12px;
+}
+
+.lives-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* Control Buttons Toolbar */
+.toolbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.arcade-btn {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.arcade-btn:hover {
+  background: #334155;
+  color: #ffffff;
+  border-color: #64748b;
+  transform: translateY(-1px);
+}
+
+.arcade-btn:active {
+  transform: translateY(1px);
+}
+
+.arcade-btn.primary {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.arcade-btn.primary:hover {
+  background: #0369a1;
+}
+
+/* Virtual D-Pad for Mobile & Touch */
+.dpad-container {
+  display: none;
+  margin-top: 14px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .dpad-container {
+    display: flex;
+  }
+}
+
+.dpad-row {
+  display: flex;
+  gap: 6px;
+}
+
+.dpad-btn {
+  width: 52px;
+  height: 52px;
+  background: #1e293b;
+  border: 2px solid #475569;
+  border-radius: 12px;
+  color: #f1f5f9;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  touch-action: manipulation;
+  transition: background 0.1s, transform 0.1s;
+}
+
+.dpad-btn:active {
+  background: #0284c7;
+  border-color: #38bdf8;
+  transform: scale(0.92);
+}
+
+/* Instructions card */
+.instructions-card {
+  margin-top: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 9px;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 620px;
+  width: 100%;
+}
+
+.instructions-card strong {
+  color: #e2e8f0;
+}
